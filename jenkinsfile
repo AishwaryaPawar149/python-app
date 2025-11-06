@@ -2,15 +2,16 @@ pipeline {
     agent any
 
     environment {
-        SSH_CRED = 'node-app-key'
-        SERVER_IP = '172.31.11.37'
+        SSH_CRED   = 'node-app-key'
+        SERVER_IP  = '172.31.11.37'
         REMOTE_USER = 'ubuntu'
-        APP_DIR = '/home/ubuntu/pythonapp'
+        APP_DIR    = '/home/ubuntu/pythonapp'
     }
 
     stages {
         stage('Clone Repo') {
             steps {
+                // ✅ Fixed: branch name changed from 'master' to 'main'
                 git url: 'https://github.com/AishwaryaPawar149/python-app', branch: 'main'
             }
         }
@@ -20,7 +21,7 @@ pipeline {
                 sshagent(credentials: ["${SSH_CRED}"]) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "mkdir -p ${APP_DIR}"
-                        scp -r Dockerfile README.md app.py requirements.txt test ${REMOTE_USER}@${SERVER_IP}:${APP_DIR}/
+                        scp -o StrictHostKeyChecking=no -r Dockerfile README.md app.py requirements.txt test ${REMOTE_USER}@${SERVER_IP}:${APP_DIR}/
                     '''
                 }
             }
@@ -31,7 +32,7 @@ pipeline {
                 sshagent(["${SSH_CRED}"]) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} '
-                            sudo apt update &&
+                            sudo apt update -y &&
                             sudo apt install -y python3-venv python3-pip &&
                             cd ${APP_DIR} &&
                             python3 -m venv venv &&
